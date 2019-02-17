@@ -1,0 +1,11 @@
+""" plot results """
+fig = plt.figure()
+ax = fig.add_subplot(111)
+h1, = ax.plot(time, angle)
+h2, = ax.plot(time, rotVel)
+h3, = ax.plot(time, kinetic_servo_pdctrl)
+ax.legend([h1, h2, h3], ["angle", "rotVel", "kinetic energy"])
+ax.set_xlabel("time")
+ax.grid()
+fig.suptitle('PD-Controlled Servo Motor', fontsize=16)
+plt.show()
