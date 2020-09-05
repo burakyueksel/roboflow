@@ -45,4 +45,4 @@ angle_pdctrl    = y_servo_pdctrl[:,0]
 rotVel_pdctrl   = y_servo_pdctrl[:,1]
 kinetic_pdctrl  = my_servo.kinetic_energy(rotVel_pdctrl)
 """ plotter """
-state_plotter(time,angle_pctrl,rotVel_pctrl,kinetic_pctrl)
+state_plotter(time,angle_pdctrl,rotVel_pdctrl)

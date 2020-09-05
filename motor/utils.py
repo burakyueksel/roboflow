@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+"""
+__author__     = "Burak Yueksel"
+__copyright__  = "Copyright 2018, The RoboSim Project"
+__credits__    = ["Burak Yueksel"]
+__license__    = "GPL"
+__version__    = "0.0.0"
+__maintainer__ = "Burak Yueksel"
+__email__      = "mail.burakyuksel@gmail.com"
+__status__     = "Development"
+"""
 import matplotlib.pyplot as plt
 
 def state_plotter(*argv):
