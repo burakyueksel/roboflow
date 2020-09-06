@@ -11,6 +11,7 @@ __status__     = "Development"
 """
 import math
 from utils import *
+import config
 
 "test rotation matrix implementations"
 alpha = 0# yaw
@@ -25,8 +26,8 @@ T = trans4 ("x",math.pi,np.array([10,0,0]))
 print(T)
 
 "create 2 joint robot and test kinematics"
-p01     = np.array([1,0,0])
-p12     = np.array([1,0,0])
+p01     = config.joint1['pos']
+p12     = config.joint2['pos']
 ang0    = 0.0
 ang1    = math.pi/2
 axis0   = "z"
@@ -37,3 +38,5 @@ T02 = T12 @ T01
 
 print(T02)
 print(getPos(T02))
+
+print (config.joint1['pos'])
