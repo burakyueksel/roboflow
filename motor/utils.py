@@ -22,7 +22,6 @@ def state_plotter(*argv):
         ax.set_xlabel("time")
         ax.grid()
         fig.suptitle('tim vs arg1', fontsize=16)
-        plt.show()
     elif len(argv)<4:
         fig = plt.figure()
         ax = fig.add_subplot(111)
@@ -32,7 +31,6 @@ def state_plotter(*argv):
         ax.set_xlabel("time")
         ax.grid()
         fig.suptitle('tim vs arg1 and arg2', fontsize=16)
-        plt.show()
     elif len(argv)<5:
         fig = plt.figure()
         ax = fig.add_subplot(111)
@@ -43,4 +41,6 @@ def state_plotter(*argv):
         ax.set_xlabel("time")
         ax.grid()
         fig.suptitle('tim vs arg1 and arg2 and arg3', fontsize=16)
-        plt.show()
+    axes = plt.axes()
+    axes.set_ylim([-1, 200])
+    plt.show()

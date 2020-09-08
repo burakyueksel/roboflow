@@ -9,6 +9,7 @@ __maintainer__ = "Burak Yueksel"
 __email__      = "mail.burakyuksel@gmail.com"
 __status__     = "Development"
 """
+import numpy as np
 
 class emotor(object):
     """ An electric motor, i.e. emotor has the followning properties:
@@ -52,7 +53,48 @@ class emotor(object):
         kp                   = 30
         kd                   = 12
         u                    = kp*e + kd*ed
-        return u       
+        return u 
+
+    def pi_ctrl_aw(self,state,state_d):
+        """ pi-controller
+            state           : current state \in\mathbb{R}^2, i.e. [integral_error, velocity]
+            state_d         : desired state \in\mathbb{R}^1, i.e. des_velocity        
+            e               : error between desired and current state
+            kp              : gain of the controller []
+            u               : computed control input [unit depending on the system]
+            u_norm          : normalized u with kp
+        """
+        ei                   = state[0]
+        ve                   = state_d-state[1]
+        kp                   = 60
+        ki                   = 20
+        kaw                  = 0.01
+        maxTorque            = 60               # Nm
+        u                    = kp*ve + ki*ei
+        np.clip(u, -maxTorque, maxTorque)
+        #u                    = [max(min(x, maxTorque), -maxTorque) for x in u]
+        '''
+        if u>maxTorque:
+            u = maxTorque
+        '''
+        e                    = ve + kaw*(maxTorque - u)
+        return u,e     
+
+    def pi_ctrl(self,state,state_d):
+        """ pi-controller
+            state           : current state \in\mathbb{R}^2, i.e. [integral_error, velocity]
+            state_d         : desired state \in\mathbb{R}^1, i.e. des_velocity        
+            e               : error between desired and current state
+            kp              : gain of the controller []
+            u               : computed control input [unit depending on the system]
+            u_norm          : normalized u with kp
+        """
+        ei                   = state[0]
+        e                    = state_d-state[1]
+        kp                   = 30
+        ki                   = 10
+        u                    = kp*e + ki*ei
+        return u,e     
     def p_controlled_dynamics(self, rotVel, t):
         """ dynamics of a motor (1st order Euler) 
             t      = time                [s]
@@ -64,6 +106,31 @@ class emotor(object):
         u, u_norm = self.p_ctrl(rotVel,self.setPoint)
         rotAcc    = self.momentOfInertia*u
         return rotAcc
+
+    def pi_controlled_dynamics(self, state, t):
+        """ dynamics of a motor 
+            t      = time                [s]
+            angle  = angle               [rad]
+            rotVel = rotational velocity [rad/s]
+            u      = input torque        [Nm]
+            """
+        u,e     = self.pi_ctrl(state,self.setPoint)
+        #rotVel  = state[1]
+        rotAcc  = self.momentOfInertia*u
+        return [e, rotAcc]
+
+    def pi_aw_controlled_dynamics(self, state, t):
+        """ dynamics of a motor 
+            t      = time                [s]
+            angle  = angle               [rad]
+            rotVel = rotational velocity [rad/s]
+            u      = input torque        [Nm]
+            """
+        u,e     = self.pi_ctrl_aw(state,self.setPoint)
+        #rotVel  = state[1]
+        rotAcc  = self.momentOfInertia*u
+        return [e, rotAcc]
+
     def open_dynamics(self, rotVel, t, u):
         """ dynamics of a motor (1st order Euler) 
             t      = time                [s]
@@ -107,7 +174,7 @@ class emotor(object):
         u       = self.pd_ctrl(state,self.setPoint)
         rotVel  = state[1]
         rotAcc  = self.momentOfInertia*u
-        return [rotVel, rotAcc]       
+        return [rotVel, rotAcc]
 
     def kinetic_energy(self, rotVel):
         """ kinetic energy of a motor
