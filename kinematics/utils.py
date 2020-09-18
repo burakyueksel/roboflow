@@ -83,4 +83,23 @@ def getEuler(R):
     "https://www.gregslabaugh.net/publications/euler.pdf"
 
 
-# def plot3D ()
+def plot_2link_3D (pos1, pos2):
+    # x,y,z values of positions of joint 1 and 2 are in separated lists (for plotting)
+    pos1x_s = np.squeeze([item[0] for item in pos1])
+    pos1y_s = np.squeeze([item[1] for item in pos1])
+    pos1z_s = np.squeeze([item[2] for item in pos1])
+    pos2x_s = np.squeeze([item[0] for item in pos2])
+    pos2y_s = np.squeeze([item[1] for item in pos2])
+    pos2z_s = np.squeeze([item[2] for item in pos2])
+    fig = plt.figure()
+    ax  = plt.axes(projection='3d')
+    ax.scatter3D(0,0,0)
+    ax.scatter3D(pos1x_s, pos1y_s, pos1z_s)
+    ax.scatter3D(pos2x_s, pos2y_s, pos2z_s)
+    for i in range(len(pos1)):
+        ax.plot([0, pos1x_s[i]],[0, pos1y_s[i]],[0, pos1z_s[i]], 'Black')
+        ax.plot([pos1x_s[i], pos2x_s[i]],[pos1y_s[i], pos2y_s[i]],[pos1z_s[i], pos2z_s[i]], 'Gray')
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
+    plt.show()

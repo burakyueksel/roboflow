@@ -58,35 +58,18 @@ print(getPos(T01))
 print(getPos(T02))
 '''
 
-ang0_l = np.arange(0,math.pi/2,0.1)
-ang1_l = np.arange(0,math.pi/2,0.1)
+ang0_l = np.arange(0,math.pi/2,0.5)
+ang1_l = np.arange(0,math.pi/2,0.5)
 
-pos1x = []
-pos1y = []
-pos1z = []
-pos2x = []
-pos2y = []
-pos2z = []
+pos1  = []
+pos2  = []
 for ang0 in ang0_l:
     for ang1 in ang1_l:
         T01 = trans4 (ang0,axis0,p01)
         T12 = trans4 (ang1,axis1,p12)
         T02 = T01 @ T12
-        pos1x.append(getPos(T01)[0])
-        pos1y.append(getPos(T01)[1])
-        pos1z.append(getPos(T01)[2])
-        pos2x.append(getPos(T02)[0])
-        pos2y.append(getPos(T02)[1])
-        pos2z.append(getPos(T02)[2])
-pos1x_s = np.squeeze(pos1x)
-pos1y_s = np.squeeze(pos1y)
-pos1z_s = np.squeeze(pos1z)
-pos2x_s = np.squeeze(pos2x)
-pos2y_s = np.squeeze(pos2y)
-pos2z_s = np.squeeze(pos2z)
-fig = plt.figure()
-ax  = plt.axes(projection='3d')
-ax.scatter3D(0,0,0)
-ax.scatter3D(pos1x_s, pos1y_s, pos1z_s)
-ax.scatter3D(pos2x_s, pos2y_s, pos2z_s)
-plt.show()
+        # append the position vectors for joint1 and joint2
+        pos1.append(getPos(T01))
+        pos2.append(getPos(T02))
+# plot
+plot_2link_3D (pos1, pos2)
