@@ -10,6 +10,8 @@ __email__      = "mail.burakyuksel@gmail.com"
 __status__     = "Development"
 """
 import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
 
 def throws():
     raise RuntimeError('Error, ending.')
@@ -48,7 +50,7 @@ def rot3(alpha,beta,gamma):
                             (-sb,   cb*sg,            cb*cg)))
     return R
 
-def trans4 (axis,angle,pos):
+def trans4 (angle,axis,pos):
     R = np.identity(3, dtype = float) 
     if      (axis == "x"):
         R = rotX(angle)
@@ -58,7 +60,8 @@ def trans4 (axis,angle,pos):
         R = rotZ(angle)
     else:
         throws()
-    T1  = np.c_[R,pos]
+    pos_rot = R @ pos
+    T1  = np.c_[R,pos_rot]
     bot = np.array((0,0,0,1))
     T   = np.r_[T1,bot.reshape(1,4)]
     return T
@@ -78,3 +81,6 @@ def getRot(T):
 
 def getEuler(R):
     "https://www.gregslabaugh.net/publications/euler.pdf"
+
+
+# def plot3D ()
