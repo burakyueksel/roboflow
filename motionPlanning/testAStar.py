@@ -40,7 +40,7 @@ if showAnimation:
     plt.grid (True)
     plt.axis ('equal')
 
-aStar = AStar(obsX, obsY, gridSize, robRad)
+aStar = AStar(obsX, obsY, gridSize, robRad, showAnimation)
 posX, posY = aStar.planning (sPosX, sPosY, gPosX, gPosY)
 
 if showAnimation:

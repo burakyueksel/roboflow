@@ -151,7 +151,7 @@ class AStar:
 		def __str__(self):
 			return str(self.x) + "," + str(self.y) + "," + str(
 				self.cost) + "," + str(self.parent_index)
-	def __init__(self, obsX, obsY, res, robRad):
+	def __init__(self, obsX, obsY, res, robRad, showAnimation):
 		'''
 		init the grid map
 		obsX  : X coordinates of the obstacles
@@ -170,6 +170,7 @@ class AStar:
 		self.widthY = 0.0
 		self.motion = self.getMotion()
 		self.calcObstMap(obsX, obsY)
+		self.showAnimation = showAnimation
 
 	def planning(self, startX, startY, goalX, goalY):
 		'''
@@ -191,7 +192,7 @@ class AStar:
 			current    = openSet[currentId]
 			
             # show graph
-			if showAnimation:
+			if self.showAnimation:
 				plt.plot(self.calcGridPos(current.x, self.minX),
                          self.calcGridPos(current.y, self.minY), "xc")
                 # for stopping simulation with the esc key.
