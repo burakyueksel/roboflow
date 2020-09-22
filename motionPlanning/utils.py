@@ -1,9 +1,15 @@
-'''
-
-Utils for path and trajectory planning
-@author: Burak Yueksel 
-
-'''
+#!/usr/bin/env python
+"""
+__author__     = "Burak Yueksel"
+__copyright__  = "Copyright 2020, The Roboflow Project"
+__credits__    = ["Burak Yueksel"]
+__license__    = "GPL"
+__version__    = "0.0.0"
+__maintainer__ = "Burak Yueksel"
+__email__      = "mail.burakyuksel@gmail.com"
+__status__     = "Development"
+__description__= "Utils/libraries for the motion planning"
+"""
 
 # import libraries
 import math
@@ -174,8 +180,170 @@ class AStar:
 		goalNode  = self.Node(	self.calcXYIndex(goalX,self.minX),
 								self.calcXYIndex(goalX,self.minY), 0.0, -1)
 		openSet = dict()
-		closeSet= dict()
+		closedSet= dict()
+		openSet[self.calcGridIndex(startNode)] = startNode
 
+		while 1:
+			if len(openSet) == 0:
+				print ("Open Set is Empty")
+				break
+			currentId = min(openSet, key=lambda o: openSet[o].cost + self.calcHeuristic(goalNode,openSet[o]))
+			current    = openSet[currentId]
+			
+            # show graph
+			if showAnimation:
+				plt.plot(self.calcGridPos(current.x, self.minX),
+                         self.calcGridPos(current.y, self.minY), "xc")
+                # for stopping simulation with the esc key.
+				plt.gcf().canvas.mpl_connect('key_release_event',
+                                             lambda event: [exit(
+                                                 0) if event.key == 'escape' else None])
+				if len(closedSet.keys()) % 10 == 0:
+					plt.pause(0.001)
+
+			# when current node is the goal node
+			if current.x == goalNode.x and current.y == goalNode.y:
+				print ("Goal reached")
+				goalNode.parentIndex = current.parentIndex
+				goalNode.cost		 = current.calcObstMap
+				break
+
+			# remove the current item from the open set
+			del openSet[currentId]
+
+			# add the current item to the closed set
+			closedSet[currentId] = current
+
+			# grid search based on the motion model
+			for i, _ in enumerate(self.motion):
+				node 	= self.Node (current.x + self.motion[i][0],
+								  current.y + self.motion[i][1],
+								  current.cost + self.motion[i][2],
+								  currentId)
+				nodeId  = self.calcGridIndex(node) 
+
+			# verify the node. If it is unsafe, do not execute the rest nd jump to the beginning of the loop (continue).
+			if not self.verifyNode(node):
+				continue
+			
+			# if the node is in the closed set, do nothing and jump to the beginning of the loop (continue).
+			if nodeId in closedSet:
+				continue
+
+			# if the node is NOT in the open set, then a new node is discovered, put it in the open set. If it is, check for the cost.
+			if nodeId not in openSet:
+				openSet[nodeId] = node
+			else:
+				if openSet[nodeId].cost > node.cost:
+					# node cost is less than what open set had: this is the best path, record it!
+					openSet[nodeId] = node
+
+		posX, posY = self.calcFinalPath(goalNode, closedSet)
+		return posX, posY
+
+	def calcFinalPath (self, goalNode,closedSet):
+		'''
+		generate the final path
+		'''
+		posX, posY = [self.calcGridPos(goalNode.x, self.minX)], \
+		             [self.calcGridPos(goalNode.y, self.minY)]
+		parentIndex = goalNode.parentIndex
+		while parentIndex != -1:
+			node = closedSet[parentIndex]
+			posX.append(self.calcGridPos(node.x, self.minX))
+			posY.append(self.calcGridPos(node.y, self.minY))
+			prentIndex = node.parentIndex
+
+		return posX, posY
+		
+	def calcXYIndex(self, position, minPosition):
+		'''
+		calculate x and y index of a Node from its position
+		'''
+		return round((position-minPosition)/self.res)
+	def calcGridIndex(self, node):
+		'''
+		TODO: what is this?
+		'''
+		return (node.y - self.minY) * self.widthX + (node.x - self.minX)
+	def calcObstMap (self, obsX, obsY):
+		# get the min and max positions
+		self.minX = round(min(obsX))
+		self.minY = round(min(obsY))
+		self.maxX = round(max(obsX))
+		self.maxY = round(max(obsY))
+		
+		# get the widths
+		self.widthX = round((self.maxX - self.minX)/self.res)
+		self.widthY = round((self.maxY - self.minY)/self.res)
+
+		# generate the obstacle
+		self.obstMap = [[False for _ in range (self.widthY)] for _ in range(self.widthX)]
+		for indX in range(self.widthX):
+			x = self.calcGridPos(indX, self.minX)
+			for indY in range(self.widthY):
+				y = self.calcGridPos(indY, self.minY)
+				for iobsX, iobsY in zip(obsX, obsY):
+					dist = math.sqrt((iobsX-x)**2 + (iobsY-y)**2)
+					if dist <= self.robRad:
+						self.obstMap[indX][indY] = True
+						break
+	def calcGridPos(self, index, minPos):
+		pos = index * self.res + minPos
+		return pos
+	
+	def verifyNode (self, node):
+		posX = self.calcGridPos(node.x, self.minX)
+		posY = self.calcGridPos(node.y, self.minY)
+
+		# check if the positions are in the grid
+		if posX < self.minX:
+			return False
+		elif posY < self.minY:
+			return False
+		elif posX >= self.maxX:
+			return False
+		elif posY >= self.maxY:
+			return False
+		
+		# check for obstacle collision
+		if self.obstMap[node.x][node.y]:
+			return False
+		
+	
+	@staticmethod
+	def calcHeuristic (node1, node2):
+		weight = 1.0
+		dist   = weight * math.sqrt ((node1.x - node2.x)**2 + (node1.y - node2.y)**2)
+		return dist
+
+	@staticmethod
+	def getMotion ():
+		'''
+		[delta X,  delta Y,  cost]
+											^ +y		
+											|		
+											|
+											|
+							-x	<-----------|-----o-------->  +x
+											|     m1 = [1,0,1]
+										o	|
+						m2=[-1,-1,sqrt(2)]	|
+											|
+											-y										
+		example:
+		1: the coordinates of m1 is (1,0), as shown above. The vector from 0,0 to m1 has the length of 1, i.e. cost.
+		2: the coordinates of m2 is (-1,-1), as shown above. The vector from 0,0 to m1 has the length of sqrt(2), i.e. cost.
+		'''
+		motion = [	[1,	0,	1],
+					[0,	1,	1],
+					[-1,0,	1],
+					[0,-1,	1],
+					[-1,-1,math.sqrt(2)],
+					[-1,1,math.sqrt(2)],
+					[1,-1,math.sqrt(2)],
+					[1,1,math.sqrt(2)]]
+		return motion
 
 class RRT2D:
 	'''
