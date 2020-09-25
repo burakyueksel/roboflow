@@ -206,7 +206,7 @@ class AStar:
 			if current.x == goalNode.x and current.y == goalNode.y:
 				print ("Goal reached")
 				goalNode.parentIndex = current.parentIndex
-				goalNode.cost		 = current.calcObstMap
+				goalNode.cost		 = current.cost
 				break
 
 			# remove the current item from the open set
@@ -223,24 +223,98 @@ class AStar:
 								  currentId)
 				nodeId  = self.calcGridIndex(node) 
 
-			# verify the node. If it is unsafe, do not execute the rest nd jump to the beginning of the loop (continue).
-			if not self.verifyNode(node):
-				continue
-			
-			# if the node is in the closed set, do nothing and jump to the beginning of the loop (continue).
-			if nodeId in closedSet:
-				continue
+				# verify the node. If it is unsafe, do not execute the rest nd jump to the beginning of the loop (continue).
+				if not self.verifyNode(node):
+					continue
+				
+				# if the node is in the closed set, do nothing and jump to the beginning of the loop (continue).
+				if nodeId in closedSet:
+					continue
 
-			# if the node is NOT in the open set, then a new node is discovered, put it in the open set. If it is, check for the cost.
-			if nodeId not in openSet:
-				openSet[nodeId] = node
-			else:
-				if openSet[nodeId].cost > node.cost:
-					# node cost is less than what open set had: this is the best path, record it!
+				# if the node is NOT in the open set, then a new node is discovered, put it in the open set. If it is, check for the cost.
+				if nodeId not in openSet:
 					openSet[nodeId] = node
-
+				else:
+					if openSet[nodeId].cost > node.cost:
+						# node cost is less than what open set had: this is the best path, record it!
+						openSet[nodeId] = node
+	
 		posX, posY = self.calcFinalPath(goalNode, closedSet)
 		return posX, posY
+	
+	def biDirectionalPlanning (self, startX, startY, goalX, goalY, showAnimation):
+		'''
+		Bidirectional Astar Planning
+		'''
+		startNode = self.Node(	self.calcXYIndex(startX,self.minX),
+								self.calcXYIndex(startY,self.minY), 0.0, -1)
+		goalNode  = self.Node(	self.calcXYIndex(goalX,self.minX),
+								self.calcXYIndex(goalX,self.minY), 0.0, -1)
+		openSetStart 	= dict()
+		closedSetStart	= dict()
+		openSetGoal  	= dict()
+		closedSetGoal	= dict()
+		openSetStart[self.calcGridIndex(startNode)] = startNode
+		openSetGoal[self.calcGridIndex(goalNode)]   = goalNode
+
+		currentStart    = startNode
+		currentGoal     = goalNode
+
+		meetStart, meetGoal = None, None
+
+		while 1:
+			if len(openSetStart) == 0:
+				print ("Open Set from Start is empty")
+				break
+			if len(openSetStart) == 0:
+				print ("Open Set from Goal is empty")
+				break
+			currentIdStart = min(openSetStart, key=lambda o: self.biDirect_calcTotalCost(openSetStart, o, currentGoal))
+			currentStart   = openSetStart[currentIdStart]
+
+			currentIdGoal   = min(openSetGoal, key=lambda o: self.biDirect_calcTotalCost(openSetGoal, o, currentStart))
+			currentGoal     = openSetGoal[currentIdGoal]
+
+			# show graph
+			if self.showAnimation:
+				plt.plot(self.calcGridPos(currentStart.x, self.minX),
+                         self.calcGridPos(currentStart.y, self.minY), "xc")
+				plt.plot(self.calcGridPos(currentGoal.x, self.minX),
+                         self.calcGridPos(currentGoal.y, self.minY), "xc")
+                # for stopping simulation with the esc key.
+				plt.gcf().canvas.mpl_connect('key_release_event',
+                                             lambda event: [exit(
+                                                 0) if event.key == 'escape' else None])
+				if len(closedSetStart.keys()) % 10 == 0:
+					plt.pause(0.001)
+			
+			# when nodes from start and goal meet
+			if currentStart.x == currentGoal.x and currentStart.y == currentGoal.y:
+				print ("Goal reached")
+				meetStart = currentStart
+				meetGoal   = currentGoal
+				break
+
+			# remove current item from the open sets
+			del openSetStart[currentIdStart]
+			del openSetGoal [currentIdGoal]
+
+			# add current item to the closed sets
+			closedSetStart[currentIdStart]	= currentStart
+			closedSetGoal[currentIdGoal]	= currentGoal			
+
+			# grid search based on the motion model
+			for i, _ in enumerate(self.motion):
+				nodes 	= [ self.Node (currentStart.x + self.motion[i][0],
+								  currentStart.y + self.motion[i][1],
+								  currentStart.cost + self.motion[i][2],
+								  currentIdStart),
+							self.Node (currentGoal.x + self.motion[i][0],
+								  currentGoal.y + self.motion[i][1],
+								  currentGoal.cost + self.motion[i][2],
+								  currentIdGoal)]
+				nodeIds  = [self.calcGridIndex(nodes[0]),
+							self.calcGridIndex(nodes[1])]
 
 	def calcFinalPath (self, goalNode,closedSet):
 		'''
@@ -253,7 +327,7 @@ class AStar:
 			node = closedSet[parentIndex]
 			posX.append(self.calcGridPos(node.x, self.minX))
 			posY.append(self.calcGridPos(node.y, self.minY))
-			prentIndex = node.parentIndex
+			parentIndex = node.parentIndex
 
 		return posX, posY
 		
@@ -299,19 +373,31 @@ class AStar:
 
 		# check if the positions are in the grid
 		if posX < self.minX:
+			print ('not verified: minX')
 			return False
 		elif posY < self.minY:
+			print ('not verified: minY')
 			return False
 		elif posX >= self.maxX:
+			print ('not verified: maxX')
 			return False
 		elif posY >= self.maxY:
+			print ('not verified: maxY')
 			return False
 		
 		# check for obstacle collision
 		if self.obstMap[node.x][node.y]:
+			print('possible collision detected')
 			return False
 		
+		return True
 	
+	def biDirect_calcTotalCost(self, openSet, ind, node):
+		openCost = openSet[ind].cost
+		heurCost = self.calcHeuristic(node, openSet[ind])
+		return openCost + heurCost 
+
+		
 	@staticmethod
 	def calcHeuristic (node1, node2):
 		weight = 1.0

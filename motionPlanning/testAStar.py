@@ -19,8 +19,8 @@ sPosX       = 10.0 # [m]
 sPosY       = 10.0 # [m]
 gPosX       = 50.0 # [m]
 gPosY       = 50.0 # [m]
-gridSize    = 2.0  # [m]
-robRad      = 1.0  # [m]
+gridSize    = 4.0  # [m]
+robRad      = 4.0  # [m]
 
 # animate
 showAnimation = True
@@ -32,6 +32,18 @@ for i in range (-10, 60):
 for i in range (-10,60):
     obsX.append(60.0)
     obsY.append(i)
+for i in range(-10, 61):
+    obsX.append(i)
+    obsY.append(60.0)
+for i in range(-10, 61):
+    obsX.append(-10.0)
+    obsY.append(i)
+for i in range(-10, 40):
+    obsX.append(20.0)
+    obsY.append(i)
+for i in range(0, 40):
+    obsX.append(40.0)
+    obsY.append(60.0 - i)
 
 if showAnimation:
     plt.plot (obsX, obsY, '.k')
@@ -44,6 +56,6 @@ aStar = AStar(obsX, obsY, gridSize, robRad, showAnimation)
 posX, posY = aStar.planning (sPosX, sPosY, gPosX, gPosY)
 
 if showAnimation:
-    plt.plot (posX, posX, '-r')
+    plt.plot (posX, posY, '-r')
     plt.pause(0.001)
     plt.show()
