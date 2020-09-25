@@ -17,6 +17,30 @@ import random
 import matplotlib.pyplot as plt
 import numpy as np
 
+import time
+
+def TicTocGenerator():
+    # Generator that returns time differences
+    ti = 0           # initial time
+    tf = time.time() # final time
+    while True:
+        ti = tf
+        tf = time.time()
+        yield tf-ti # returns the time difference
+
+TicToc = TicTocGenerator() # create an instance of the TicTocGen generator
+
+# This will be the main function through which we define both tic() and toc()
+def toc(tempBool=True):
+    # Prints the time difference yielded by generator instance TicToc
+    tempTimeInterval = next(TicToc)
+    if tempBool:
+        print( "Elapsed time: %f seconds.\n" %tempTimeInterval )
+
+def tic():
+    # Records a time in TicToc, marks the beginning of a time interval
+    toc(False)
+
 def str2bool(v):
 
 	return str(v).lower() in ("True", "true", "t", "1")
@@ -242,7 +266,7 @@ class AStar:
 		posX, posY = self.calcFinalPath(goalNode, closedSet)
 		return posX, posY
 	
-	def biDirectionalPlanning (self, startX, startY, goalX, goalY, showAnimation):
+	def biDirectionalPlanning (self, startX, startY, goalX, goalY):
 		'''
 		Bidirectional Astar Planning
 		'''
@@ -316,6 +340,30 @@ class AStar:
 				nodeIds  = [self.calcGridIndex(nodes[0]),
 							self.calcGridIndex(nodes[1])]
 
+				# check if the node is safe. If not safe, do nothing
+				cont = self.biDirect_checkNodesAndSets(nodes,closedSetStart,closedSetGoal,nodeIds)
+
+				if not cont[0]:
+					if nodeIds[0] not in openSetStart:
+						# new node is detected
+						openSetStart[nodeIds[0]] = nodes[0]
+					else:
+						if openSetStart[nodeIds[0]].cost > nodes[0].cost:
+							# shortest path so far, record it
+							openSetStart[nodeIds[0]] = nodes[0]
+
+				if not cont[1]:
+					if nodeIds[1] not in openSetGoal:
+						# new node is detected
+						openSetGoal[nodeIds[1]] = nodes[1]
+					else:
+						if openSetGoal[nodeIds[1]].cost > nodes[1].cost:
+							# shortest path so far, record it
+							openSetGoal[nodeIds[1]] = nodes[1]
+		posX, posY = self.biDirect_calcFinalPath(meetStart, meetGoal, closedSetStart, closedSetGoal)
+		return posX, posY
+
+
 	def calcFinalPath (self, goalNode,closedSet):
 		'''
 		generate the final path
@@ -387,7 +435,6 @@ class AStar:
 		
 		# check for obstacle collision
 		if self.obstMap[node.x][node.y]:
-			print('possible collision detected')
 			return False
 		
 		return True
@@ -396,6 +443,26 @@ class AStar:
 		openCost = openSet[ind].cost
 		heurCost = self.calcHeuristic(node, openSet[ind])
 		return openCost + heurCost 
+
+	def biDirect_checkNodesAndSets(self, nodes, closedSetStart, closedSetGoal, nodeIds):
+		cont = [False, False]
+		if not self.verifyNode(nodes[0]) or nodeIds[0] in closedSetStart:
+			cont[0] = True
+		if not self.verifyNode(nodes[1]) or nodeIds[1] in closedSetGoal:
+			cont[1] = True
+		return cont 
+
+	def biDirect_calcFinalPath(self, nodeStart, nodeGoal, closedSetStart, closedSetGoal):
+		posXStart, posYStart = self.calcFinalPath(nodeStart, closedSetStart)
+		posXGoal, posYGoal   = self.calcFinalPath(nodeGoal, closedSetGoal)
+
+		posXStart.reverse()
+		posYStart.reverse()
+
+		posX = posXStart + posXGoal
+		posY = posYStart + posYGoal
+
+		return posX, posY
 
 		
 	@staticmethod
