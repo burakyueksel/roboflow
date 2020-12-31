@@ -17,3 +17,5 @@ Or in this folder run
 ```console
 $ python3 test.py
 ```
+
+You will be asked for which test case shall be run. Type one of the available cases.
