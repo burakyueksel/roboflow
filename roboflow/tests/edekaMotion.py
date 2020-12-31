@@ -52,6 +52,16 @@ for i in range(wall_xy_min, 20):
 for i in range(0, 60):
     obsX.append(40.0) # place at x coordinate 40
     obsY.append(wall_xy_max - i) # length on y: from top to top-60 
+# extra walls on the left
+for i in range(-10, 10):
+    obsX.append(i)
+    obsY.append(10.0)
+for i in range(0, 20):
+    obsX.append(i)
+    obsY.append(30.0)
+for i in range(10, 30):
+    obsX.append(0)
+    obsY.append(i)
 
 if showAnimation:
     plt.plot (obsX, obsY, '.k')
