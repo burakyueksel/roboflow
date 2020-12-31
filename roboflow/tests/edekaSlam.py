@@ -14,6 +14,10 @@ from roboflow.slam.utils import *
 
 print(__file__ + " start!!")
 
+'''
+for both Fast Slam 2 and EKF Slam:
+'''
+
 time = 0.0
 
 # RFID positions [x, y]
@@ -40,5 +44,19 @@ hxDR = xTrue
 
 show_animation = True
 
+'''
+For EKF Slam only:
+'''
+
+PEst = np.eye(STATE_SIZE)
+
+'''
+For Fast Slam 2 only:
+
+'''
 particles = [Particle(n_landmark) for _ in range(N_PARTICLE)]
-fastSlam2Run(time, RFID, xTrue, xDR, particles, hxEst, hxDR, hxTrue, show_animation)
+
+
+#fastSlam2Run(time, RFID, xTrue, xDR, particles, hxEst, hxDR, hxTrue, show_animation)
+
+ekfSlamRun(time, RFID, xTrue, xDR, xEst, PEst, hxEst, hxDR, hxTrue, show_animation)
