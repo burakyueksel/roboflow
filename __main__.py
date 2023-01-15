@@ -6,11 +6,11 @@ import sys
 
 def main(testCase):
     if testCase == 'motion':
-        # edekaMotion.py is a full script. This import will simply run it!
-        import roboflow.tests.edekaMotion
+        # testMotion.py is a full script. This import will simply run it!
+        import roboflow.tests.testMotion
     elif testCase == 'slam':
-        # edekaSlam.py is a full script. This import will simply run it!
-        import roboflow.tests.edekaSlam
+        # testSlam.py is a full script. This import will simply run it!
+        import roboflow.tests.testSlam
     else:
         sys.exit('case is not defined!')
 
