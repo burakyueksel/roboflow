@@ -1,2 +1,2 @@
-# this also runs the test. Currently edeka test.
-import roboflow.tests.edeka
+# this also runs the test. Currently in test.
+import roboflow.tests.test
